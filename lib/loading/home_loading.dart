@@ -50,49 +50,94 @@ class LoadingSkeleton extends StatelessWidget {
                     children: [
                       // Title skeleton with loading text
                       SizedBox(
-                        height: 12,
+                        height: 6,
                         width: double.infinity,
                         child: Container(
                           color: Colors.grey[300], // Placeholder for title
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       // Subtitle skeleton with loading text
                       SizedBox(
-                        height: 12,
+                        height: 6,
                         width: double.infinity,
                         child: Container(
                           color: Colors.grey[300], // Placeholder for title
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       SizedBox(
-                        height: 12,
+                        height: 6,
                         width: double.infinity,
                         child: Container(
                           color: Colors.grey[300], // Placeholder for title
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       SizedBox(
-                        height: 12,
+                        height: 6,
                         width: double.infinity,
                         child: Container(
                           color: Colors.grey[300], // Placeholder for title
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       SizedBox(
-                        height: 10,
+                        height: 6,
                         width: 80,
                         child: Container(
                           color: Colors.grey[300], // Placeholder for subtitle
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       // Container with shimmer text effect for additional loading text
                       SizedBox(
-                        height: 12,
+                        height: 6,
+                        width: 100,
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Text(
+                            'Loading...', // Placeholder text
+                            style: TextStyle(
+                              color: const Color.fromARGB(255, 15, 6, 6),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 6,
+                        width: 100,
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Text(
+                            'Loading...', // Placeholder text
+                            style: TextStyle(
+                              color: const Color.fromARGB(255, 15, 6, 6),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 6,
+                        width: 100,
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Text(
+                            'Loading...', // Placeholder text
+                            style: TextStyle(
+                              color: const Color.fromARGB(255, 15, 6, 6),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 6,
                         width: 100,
                         child: Shimmer.fromColors(
                           baseColor: Colors.grey[300]!,

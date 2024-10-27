@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/player_controler.dart'; // Adjusted controller import
+import 'package:audio_service/audio_service.dart';
+import '../handler/audio_player_handler.dart';
 
 class Player extends StatelessWidget {
   final String song; // Pass the song information to the player page
+  final AudioPlayerHandler audioHandler;
 
-  const Player({super.key, required this.song});
+  const Player({super.key, required this.song, required this.audioHandler});
 
   @override
   Widget build(BuildContext context) {
-    var controller = Get.put(PlayerController());
+    var controller = Get.put(PlayerController(audioHandler: audioHandler));
 
     return Scaffold(
       appBar: AppBar(
@@ -23,14 +26,20 @@ class Player extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Display the song name
-            Text(
-              song.split('/').last, // Extract the song name from the path
-              style: const TextStyle(
+            Obx(() {
+              // Using GetX's Obx to reactively update UI when currentSongPath changes
+              return Text(
+                controller.currentSongPath.value.isNotEmpty
+                    ? controller.currentSongPath.value.split('/').last
+                    : "No song playing", // Display the song name or a placeholder
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white),
-              textAlign: TextAlign.center,
-            ),
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              );
+            }),
             const SizedBox(height: 20),
 
             // Placeholder for album art or song thumbnail
@@ -61,6 +70,7 @@ class Player extends StatelessWidget {
                         size: 64,
                       )),
                   onPressed: () {
+                    // audioHandler.play();
                     controller.togglePlayPause(
                         song); // Toggle play/pause for the current song
                   },
@@ -84,8 +94,8 @@ class Player extends StatelessWidget {
                   controller.seekTo(value); // Pass Duration
                 },
                 min: 0,
-                max: controller.duration.value.inSeconds.toDouble() > 0
-                    ? controller.duration.value.inSeconds.toDouble()
+                max: controller.songDuration.value.inSeconds.toDouble() > 0
+                    ? controller.songDuration.value.inSeconds.toDouble()
                     : 1, // Ensure max is > 0
                 activeColor: Colors.blue,
                 inactiveColor: Colors.grey,
@@ -102,7 +112,7 @@ class Player extends StatelessWidget {
 
             // Display total song duration
             Obx(() => Text(
-                  'Duration: ${controller.duration.value.inMinutes}:${(controller.duration.value.inSeconds % 60).toString().padLeft(2, '0')}',
+                  'Duration: ${controller.songDuration.value.inMinutes}:${(controller.songDuration.value.inSeconds % 60).toString().padLeft(2, '0')}',
                   style: const TextStyle(fontSize: 16, color: Colors.grey),
                 )),
           ],

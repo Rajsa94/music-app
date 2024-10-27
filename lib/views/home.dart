@@ -5,22 +5,26 @@ import '../controller/player_controler.dart'; // Adjusted controller import
 import '../consts/text_style.dart'; // Adjust the import path
 import './player.dart';
 import '../loading//home_loading.dart';
+import 'package:audio_service/audio_service.dart';
+import '../handler/audio_player_handler.dart';
 
 class Home extends StatelessWidget {
-  const Home({super.key});
+  final AudioPlayerHandler audioHandler;
+
+  const Home({super.key, required this.audioHandler});
 
   @override
   Widget build(BuildContext context) {
-    var controller = Get.put(PlayerController());
+    var controller = Get.put(PlayerController(audioHandler: audioHandler));
 
     return Scaffold(
       backgroundColor: textColor,
       appBar: AppBar(
         title: Text(
-          'Beats',
+          'Rathore Songs',
           style: ourStyle(size: 18),
         ),
-        backgroundColor: const Color.fromARGB(224, 0, 0, 0),
+        backgroundColor: const Color.fromARGB(255, 33, 45, 113),
         elevation: 0,
         centerTitle: true,
         actions: [
@@ -68,12 +72,13 @@ class Home extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 4),
                   child: InkWell(
                     onTap: () {
-                      if (controller.isPlaying.value) {
-                        controller.stopAudio();
-                      }
+                      // if (controller.isPlaying.value) {
+                      //   controller.stopAudio();
+                      // }
 
-                      controller.playAudio(song);
-                      Get.to(() => Player(song: song));
+                      controller.playAudioTwo(song, index);
+                      Get.to(
+                          () => Player(song: song, audioHandler: audioHandler));
                     },
                     child: ListTile(
                       shape: RoundedRectangleBorder(
@@ -97,18 +102,28 @@ class Home extends StatelessWidget {
                         return IconButton(
                           icon: Icon(
                             controller.isPlaying.value &&
-                                    controller.currentPosition.value == song
+                                    controller.songIndex.value == index
                                 ? Icons.pause
                                 : Icons.play_arrow,
                             color: bgColor,
                             size: 26,
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             if (controller.isPlaying.value &&
-                                controller.currentPosition.value == song) {
+                                controller.songIndex.value == index) {
                               controller.pauseAudio();
                             } else {
-                              controller.playAudio(song);
+                              if (controller.songIndex.value != index) {
+                                // Set the source with the song file path.
+                                controller.songIndex.value =
+                                    index; // Update the current song index.
+                              }
+                              // await audioHandler.setAudioSource(song);
+                              // await audioHandler.playAudio(song);
+                              await controller.playAudioTwo(
+                                song,
+                                index,
+                              );
                             }
                           },
                         );
@@ -131,10 +146,29 @@ class CustomSearchDelegate extends SearchDelegate {
   CustomSearchDelegate({required this.controller});
 
   @override
+  ThemeData appBarTheme(BuildContext context) {
+    return ThemeData.dark().copyWith(
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.black87, // Darker background for the app bar
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        hintStyle: TextStyle(color: Colors.grey), // Text style for the hint
+        border: InputBorder.none, // Removing the default border
+      ),
+    );
+  }
+
+  @override
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: const Icon(Icons.clear),
+        icon: const Icon(Icons.clear, color: Colors.white),
         onPressed: () {
           query = ''; // Clear search input
         },
@@ -145,7 +179,7 @@ class CustomSearchDelegate extends SearchDelegate {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.arrow_back),
+      icon: const Icon(Icons.arrow_back, color: Colors.white),
       onPressed: () {
         close(context, null); // Close search
       },
@@ -163,11 +197,21 @@ class CustomSearchDelegate extends SearchDelegate {
       itemBuilder: (context, index) {
         var song = results[index];
         return ListTile(
-          title: Text(song.split('/').last), // Display song name only
+          tileColor: Colors.black45, // Background color for each item
+          title: Text(
+            song.split('/').last,
+            style: const TextStyle(
+              color: Colors.white, // Text color
+              fontSize: 16,
+            ),
+          ),
+          leading: const Icon(Icons.music_note,
+              color: Colors.white70), // Icon for songs
           onTap: () {
             close(context, song);
             controller.playAudio(song); // Play selected song
           },
+          hoverColor: Colors.grey.shade800, // Highlight color on hover
         );
       },
     );
@@ -184,7 +228,14 @@ class CustomSearchDelegate extends SearchDelegate {
       itemBuilder: (context, index) {
         var song = suggestions[index];
         return ListTile(
-          title: Text(song.split('/').last), // Display song name only
+          title: Text(
+            song.split('/').last,
+            style: const TextStyle(
+              color: Colors.white70, // Lighter color for suggestions
+              fontSize: 16,
+            ),
+          ),
+          leading: const Icon(Icons.music_note, color: Colors.white70),
           onTap: () {
             query = song.split('/').last;
             showResults(context);

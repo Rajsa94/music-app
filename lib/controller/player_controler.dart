@@ -2,60 +2,94 @@ import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
+// import 'package:flutter_local_notifications/src/platform_specifics/android/bitmap.dart';
+import '../handler/audio_player_handler.dart';
 
 class PlayerController extends GetxController {
+  // final AudioPlayerHandler audioHandler = AudioPlayerHandler();
+  final AudioPlayerHandler audioHandler;
+  PlayerController({required this.audioHandler});
   final AudioPlayer audioPlayer = AudioPlayer(); // Audio player instance
   var songs = <String>[].obs; // Observable list of song paths
   var isPlaying = false.obs; // Observable for play/pause toggle
   var currentSongIndex = 0.obs;
+  var currentSongPath = ''.obs;
+  var songIndex = 0.obs;
   var currentPosition =
       Duration.zero.obs; // Observable for the current position of the song
   var songDuration = Duration.zero.obs;
+  // var songDuration = Rx<Duration>(Duration.zero);
   var duration =
       Duration.zero.obs; // Observable for total duration of the audio
   var isLoading = true.obs;
+  static const String iconFont =
+      'YourIconFontFamily'; // Replace with your actual font family name
+
   @override
   void onInit() {
     super.onInit();
     checkPermissions();
-    audioPlayer.positionStream.listen((position) {
-      currentPosition.value = position;
-    });
 
-    audioPlayer.durationStream.listen((duration) {
-      this.duration.value = duration ?? Duration.zero;
-      songDuration.value =
-          duration ?? Duration.zero; // Ensuring song duration is updated
+    currentPosition.bindStream(
+      audioHandler.currentPosition.stream
+          .map((position) => position ?? Duration.zero),
+    );
+
+    songDuration.bindStream(
+      audioHandler.songDuration.stream
+          .map((duration) => duration ?? Duration.zero),
+    );
+    // audioHandler.currentSongPathStream.listen((path) {
+    //   currentSongPath.value = path;
+    // });
+    ever(songDuration, (Duration duration) {
+      print("Updated song duration in PlayerController: $duration");
     });
   }
 
-  // Request both audio and storage permissions
   Future<void> checkPermissions() async {
-    // Check for audio permission and media-specific permissions
+    // Check for audio permission (for Android 13+)
     var audioPermission = await Permission.audio.status;
-    // var storagePermission = await Permission.storage.status;
-    var audioMediaPermission = await Permission.audio.status; // For Android 13+
+    // Check for storage permission (for Android versions < 13)
+    var storagePermission = await Permission.storage.status;
 
-    // Request media-specific permission if needed (for Android 13+)
-    if (audioMediaPermission.isDenied) {
-      audioMediaPermission = await Permission.audio.request();
+    // Request media-specific audio permission for Android 13+ if it's denied
+    if (audioPermission.isDenied || audioPermission.isRestricted) {
+      audioPermission = await Permission.audio.request();
+    }
+    //    var microphonePermission = await Permission.microphone.status;
+    // if (microphonePermission.isDenied) {
+    //   microphonePermission = await Permission.microphone.request();
+    // }
+    if (await Permission.notification.isGranted) {
+      print("Notification permission is already granted.");
+    } else {
+      // Request permission if not granted
+      final status = await Permission.notification.request();
+
+      if (status.isGranted) {
+        print("Notification permission granted.");
+        // You can now show notifications
+      } else if (status.isDenied) {
+        print("Notification permission denied.");
+        // Optionally, show an explanation or redirect to settings
+      } else if (status.isPermanentlyDenied) {
+        print("Notification permission permanently denied.");
+        // Open app settings so the user can enable permissions manually
+        openAppSettings();
+      }
     }
 
-    // Request storage permission if needed
-    // if (storagePermission.isDenied) {
-    //   storagePermission = await Permission.storage.request();
-    // }
+    // Request storage permission if needed (for devices below Android 13)
+    if (storagePermission.isDenied || storagePermission.isRestricted) {
+      storagePermission = await Permission.storage.request();
+    }
 
-    // Log the permission statuses
-    // print('Audio Permission: $audioPermission');
-    // // print('Storage Permission: $storagePermission');
-    // print('Media Audio Permission: $audioMediaPermission');
-
-    // If all necessary permissions are granted, load the songs
-    if (audioPermission.isGranted && audioMediaPermission.isGranted) {
-      // print("All permissions granted, loading songs...");
+    // If both permissions are granted, load the songs
+    if (audioPermission.isGranted || storagePermission.isGranted) {
       loadAllSongs();
     } else {
+      // Show a snackbar if permissions are not granted
       Get.snackbar(
         'Permission Required',
         'Audio and storage permissions are needed to access songs.',
@@ -95,21 +129,11 @@ class PlayerController extends GetxController {
       }
     }
 
-    // print("Found ${allSongs.length} song(s)");
-
-    // Clear the current songs and add the new ones to the observable list
     songs.clear(); // Clear existing songs
     songs.addAll(allSongs
         .map((file) => file.path)
         .toList()); // Add song paths to observable list
 
-    // Log the songs after loading to verify
-    // for (var song in allSongs) {
-    //   print("Loaded song: ${song.path}"); // Log the song paths for verification
-    // }
-
-    // Log the updated songs list
-    // print("Songs after loading: $songs");
     isLoading.value = false;
   }
 
@@ -118,7 +142,6 @@ class PlayerController extends GetxController {
     List<FileSystemEntity> allFiles = [];
 
     try {
-      // Get all files and directories in the current directory
       List<FileSystemEntity> entities =
           dir.listSync(recursive: true, followLinks: false);
 
@@ -154,42 +177,61 @@ class PlayerController extends GetxController {
 
   void seekTo(double seconds) {
     final newDuration = Duration(seconds: seconds.toInt());
-    audioPlayer.seek(newDuration);
+    audioHandler.seek(newDuration);
   }
 
   // Play selected song
   Future<void> playAudio(String songPath) async {
     try {
-      await audioPlayer.setFilePath(songPath);
-      await audioPlayer.play();
+      currentSongPath.value = songPath;
+      await audioHandler.setAudioSource(songPath);
+      // songDuration.value = audioHandler.songDuration ?? Duration.zero;
       isPlaying.value = true; // Update the play state to true
+      await audioHandler.playAudio(songPath);
     } catch (e) {
       Get.snackbar('Error', 'Unable to play the song: $e');
     }
   }
 
   void togglePlayPause(String songPath) async {
+    currentSongPath.value = songPath;
+    print("Updated song duration in PlayerController: ${isPlaying.value}");
     if (isPlaying.value) {
-      await audioPlayer.pause(); // Pause the audio
-      isPlaying.value = false; // Update the play state
+      isPlaying.value = false;
+      await audioHandler.pauseAudio();
     } else {
-      await playAudio(songPath); // Play the audio
+      isPlaying.value = true;
+      await audioHandler.setAudioSource(songPath);
+      await audioHandler.playAudio(songPath);
+    }
+  }
+
+  Future<void> playAudioTwo(String songPath, int index) async {
+    try {
+      songIndex.value = index;
+      isPlaying.value = true; // Update the play state to true
+      currentSongPath.value = songPath;
+      await audioHandler.setAudioSource(songPath);
+      await audioHandler.playAudio(songPath);
+      // songDuration.value = audioHandler.songDuration ?? Duration.zero;
+    } catch (e) {
+      Get.snackbar('Error', 'Unable to play the song: $e');
     }
   }
 
   // Pause audio
   void pauseAudio() async {
-    await audioPlayer.pause();
     isPlaying.value = false;
+    await audioHandler.pauseAudio();
   }
 
   // Seek forward (e.g., 10 seconds)
   void seekForward() {
     var newPosition = currentPosition.value + const Duration(seconds: 10);
     if (newPosition < songDuration.value) {
-      audioPlayer.seek(newPosition);
+      audioHandler.seek(newPosition);
     } else {
-      audioPlayer.seek(songDuration.value);
+      audioHandler.seek(songDuration.value);
     }
   }
 

@@ -41,7 +41,11 @@ dependencies:
   get_storage: ^2.1.1
   permission_handler: ^11.3.1
   path_provider: ^2.0.15
-  shimmer: ^2.0.0
+  shimmer: ^3.0.0
+  audio_service: ^0.18.15
+  flutter_local_notifications: ^17.2.4
+  # background_fetch: ^1.3.7
+  # flutter_local_notifications: ^17.2.4
 
 dev_dependencies:
   flutter_test:
@@ -80,12 +84,12 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
+  fonts:
+    - family: YourIconFontFamily
+      fonts:
+        - asset: assets/fonts/play-button.png
+        # - asset: fonts/Schyler-Italic.ttf
+        #   style: italic
   #   - family: Trajan Pro
   #     fonts:
   #       - asset: fonts/TrajanPro.ttf
