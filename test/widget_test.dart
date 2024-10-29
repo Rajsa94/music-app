@@ -9,11 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:songs/main.dart';
+import '../lib/handler/audio_player_handler.dart'; // Import your audio handler
 
 void main() {
+  AudioPlayerHandler audioHandler = AudioPlayerHandler();
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(audioHandler: audioHandler));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

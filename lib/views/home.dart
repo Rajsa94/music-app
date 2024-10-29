@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../consts/colors.dart';
+// import '../consts/colors.dart';
 import '../controller/player_controler.dart'; // Adjusted controller import
 import '../consts/text_style.dart'; // Adjust the import path
 import './player.dart';
-import '../loading//home_loading.dart';
-import 'package:audio_service/audio_service.dart';
+import '../loading/home_loading.dart';
 import '../handler/audio_player_handler.dart';
+// import '../layout/custom_navbar_curved.dart';
 
 class Home extends StatelessWidget {
   final AudioPlayerHandler audioHandler;
-
   const Home({super.key, required this.audioHandler});
 
   @override
   Widget build(BuildContext context) {
+    // Ensure you define the audioHandler before this line
     var controller = Get.put(PlayerController(audioHandler: audioHandler));
 
     return Scaffold(
-      backgroundColor: textColor,
+      // backgroundColor: Colors.white, // Main background color
       appBar: AppBar(
         title: Text(
-          'Rathore Songs',
-          style: ourStyle(size: 18),
+          'Local Storage Music',
+          style: ourStyle(size: 18, color: Colors.white), // White text color
         ),
-        backgroundColor: const Color.fromARGB(255, 33, 45, 113),
-        elevation: 0,
+        backgroundColor: const Color(0xFF1A237E), // Dark blue color
+        elevation: 4,
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            color: bgColor,
+            color: Colors.white,
             onPressed: () {
               showSearch(
                 context: context,
@@ -44,90 +44,92 @@ class Home extends StatelessWidget {
         var songs = controller.songs;
 
         if (controller.isLoading.value) {
-          // Check if loading
-          return LoadingSkeleton(); // Show loading skeleton
+          return LoadingSkeleton(); // Display loading skeleton
         }
 
         if (songs.isEmpty) {
           return const Center(
             child: Text(
               'No Songs Found',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.black), // Improved visibility
             ),
           );
         }
 
         return RefreshIndicator(
           onRefresh: () async {
-            await controller.refreshSongs(); // Call your refresh method
+            await controller.refreshSongs(); // Refresh songs
           },
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16.0), // Outer padding
             child: ListView.builder(
               physics: const BouncingScrollPhysics(),
               itemCount: songs.length,
               itemBuilder: (BuildContext context, int index) {
                 var song = songs[index];
                 return Container(
-                  margin: const EdgeInsets.only(bottom: 4),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                   child: InkWell(
                     onTap: () {
-                      // if (controller.isPlaying.value) {
-                      //   controller.stopAudio();
-                      // }
-
                       controller.playAudioTwo(song, index);
                       Get.to(
                           () => Player(song: song, audioHandler: audioHandler));
                     },
-                    child: ListTile(
+                    child: Card(
+                      elevation: 8, // Shadow effect
+                      shadowColor: Colors.black26,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      tileColor: const Color(0xff1F212C),
-                      title: Text(
-                        song.split('/').last,
-                        style: ourStyle(size: 15),
-                      ),
-                      subtitle: Text(
-                        'Unknown Artist',
-                        style: ourStyle(size: 12),
-                      ),
-                      leading: const Icon(
-                        Icons.music_note,
-                        color: bgColor,
-                        size: 32,
-                      ),
-                      trailing: Obx(() {
-                        return IconButton(
-                          icon: Icon(
-                            controller.isPlaying.value &&
-                                    controller.songIndex.value == index
-                                ? Icons.pause
-                                : Icons.play_arrow,
-                            color: bgColor,
-                            size: 26,
-                          ),
-                          onPressed: () async {
-                            if (controller.isPlaying.value &&
-                                controller.songIndex.value == index) {
-                              controller.pauseAudio();
-                            } else {
-                              if (controller.songIndex.value != index) {
-                                // Set the source with the song file path.
-                                controller.songIndex.value =
-                                    index; // Update the current song index.
+                      child: ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        // tileColor:
+                        //     const Color(0xfff0f0f0), // Light gray background
+                        title: Text(
+                          song.split('/').last,
+                          style: ourStyle(
+                              size: 16, color: Colors.black), // Darker text
+                        ),
+                        subtitle: Text(
+                          'Unknown Artist',
+                          style: ourStyle(
+                              size: 14,
+                              color: Colors.black54), // Lighter subtitle
+                        ),
+                        leading: const Icon(
+                          Icons.music_note,
+                          color:
+                              Color(0xFF1A237E), // Match icon color with AppBar
+                          size: 32,
+                        ),
+                        trailing: Obx(() {
+                          return IconButton(
+                            icon: Icon(
+                              controller.isPlaying.value &&
+                                      controller.songIndex.value == index
+                                  ? Icons.pause
+                                  : Icons.play_arrow,
+                              color: Color(0xFF1A237E), // Match icon color
+                              size: 26,
+                            ),
+                            onPressed: () async {
+                              if (controller.isPlaying.value &&
+                                  controller.songIndex.value == index) {
+                                controller.pauseAudio();
+                              } else {
+                                if (controller.songIndex.value != index) {
+                                  controller.songIndex.value =
+                                      index; // Update song index
+                                }
+                                await controller.playAudioTwo(song, index);
                               }
-                              // await audioHandler.setAudioSource(song);
-                              // await audioHandler.playAudio(song);
-                              await controller.playAudioTwo(
-                                song,
-                                index,
-                              );
-                            }
-                          },
-                        );
-                      }),
+                            },
+                          );
+                        }),
+                      ),
                     ),
                   ),
                 );
@@ -136,6 +138,8 @@ class Home extends StatelessWidget {
           ),
         );
       }),
+      // Uncomment if you have a custom navigation bar
+      // bottomNavigationBar: CustomNavBarCurved(),
     );
   }
 }
@@ -149,7 +153,8 @@ class CustomSearchDelegate extends SearchDelegate {
   ThemeData appBarTheme(BuildContext context) {
     return ThemeData.dark().copyWith(
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.black87, // Darker background for the app bar
+        backgroundColor:
+            const Color(0xFF1A237E), // Darker background for the app bar
         titleTextStyle: const TextStyle(
           color: Colors.white,
           fontSize: 20,
@@ -197,11 +202,12 @@ class CustomSearchDelegate extends SearchDelegate {
       itemBuilder: (context, index) {
         var song = results[index];
         return ListTile(
-          tileColor: Colors.black45, // Background color for each item
+          tileColor: const Color.fromARGB(
+              115, 228, 231, 231), // Background color for each item
           title: Text(
             song.split('/').last,
             style: const TextStyle(
-              color: Colors.white, // Text color
+              color: Colors.white70, // Text color
               fontSize: 16,
             ),
           ),
@@ -211,7 +217,8 @@ class CustomSearchDelegate extends SearchDelegate {
             close(context, song);
             controller.playAudio(song); // Play selected song
           },
-          hoverColor: Colors.grey.shade800, // Highlight color on hover
+          hoverColor: const Color.fromARGB(
+              255, 105, 16, 98), // Highlight color on hover
         );
       },
     );
@@ -231,11 +238,12 @@ class CustomSearchDelegate extends SearchDelegate {
           title: Text(
             song.split('/').last,
             style: const TextStyle(
-              color: Colors.white70, // Lighter color for suggestions
+              color: Color.fromARGB(
+                  199, 241, 235, 235), // Darker color for suggestions
               fontSize: 16,
             ),
           ),
-          leading: const Icon(Icons.music_note, color: Colors.white70),
+          leading: const Icon(Icons.music_note, color: Colors.black54),
           onTap: () {
             query = song.split('/').last;
             showResults(context);

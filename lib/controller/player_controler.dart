@@ -208,6 +208,7 @@ class PlayerController extends GetxController {
 
   Future<void> playAudioTwo(String songPath, int index) async {
     try {
+      print('Playing from: $songPath');
       songIndex.value = index;
       isPlaying.value = true; // Update the play state to true
       currentSongPath.value = songPath;
