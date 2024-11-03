@@ -109,7 +109,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
         // If switching to a new song, reset position and update the song path
         await _player.seek(Duration.zero);
         currentSongPath.value = songPath;
-        await _player.setFilePath(songPath);
+        // await _player.setFilePath(songPath);
         await _player.play();
         isPlaying = true;
       } else {
@@ -130,12 +130,21 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   }
 
   Future<void> setAudioSource(String filePath) async {
-    try {
+    // try {
+    // Determine if the songPath is a URL or a file path
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      // If it's a URL, use setUrl
+      await _player.setUrl(filePath);
+    } else {
+      // Otherwise, assume it's a file path
       await _player.setFilePath(filePath);
-      print("Audio source set to $filePath");
-    } catch (e) {
-      print("Error setting audio source: $e");
     }
+    // try {
+    //   await _player.setFilePath(filePath);
+    //   print("Audio source set to $filePath");
+    // } catch (e) {
+    //   print("Error setting audio source: $e");
+    // }
   }
 
   Future<void> seek(Duration position) async {

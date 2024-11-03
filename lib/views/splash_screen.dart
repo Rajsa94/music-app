@@ -21,14 +21,14 @@ class _SplashScreenState extends State<SplashScreen>
       duration: Duration(seconds: 4),
     );
 
-    _animation = Tween<Offset>(begin: Offset(0, 1), end: Offset(0, 0)).animate(
+    _animation = Tween<Offset>(begin: Offset(0, -1), end: Offset(0, 0)).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
     _controller.forward();
 
     // Navigate to home screen after delay
-    Timer(Duration(seconds: 3), () {
+    Timer(Duration(seconds: 4), () {
       Navigator.of(context).pushReplacementNamed('/home');
     });
   }

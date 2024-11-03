@@ -24,10 +24,10 @@ class BottomNavigation extends StatelessWidget {
           icon: Icon(Icons.music_note),
           label: 'Live Music',
         ),
-        // BottomNavigationBarItem(
-        //   icon: Icon(Icons.design_services),
-        //   label: 'Service',
-        // ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.chat_bubble),
+          label: 'Chat Bot',
+        ),
         // BottomNavigationBarItem(
         //   icon: Icon(Icons.settings),
         //   label: 'Settings',

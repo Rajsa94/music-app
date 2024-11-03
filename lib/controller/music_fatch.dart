@@ -26,16 +26,16 @@ class MusicService extends GetxService {
     final response =
         await http.post(Uri.parse(url), headers: headers, body: body);
     if (response.statusCode == 200) {
-      print('BodyOne: ${response.body}');
+      // print('BodyOne: ${response.body}');
 
       // Decode the main response body
       final Map<String, dynamic> responseData = json.decode(response.body);
 
       if (responseData['success'] == true && responseData.containsKey('data')) {
         // Decode the "data" field separately
-        print('BodyTwo:');
+        // print('BodyTwo:');
         final List<dynamic> dataList = json.decode(responseData['data']);
-        print('Body3: ${dataList}');
+        // print('Body3: ${dataList}');
 
         // Map the nested data to a list of Music objects
         return dataList.map((item) => Music.fromJson(item['data'][0])).toList();

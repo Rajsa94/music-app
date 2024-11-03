@@ -10,6 +10,7 @@ import "controller/player_controler.dart";
 import './views/splash_screen.dart';
 import "./layout/bottom_navigation_bar.dart";
 import "./views/live_music.dart";
+import "./views/chat.dart";
 
 AudioPlayerHandler? audioHandler;
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -99,6 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _pages = [
       Home(audioHandler: widget.audioHandler),
       LiveMusic(audioHandler: widget.audioHandler),
+      ChatBotUI(),
     ];
   }
 
